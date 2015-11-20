@@ -174,8 +174,7 @@ module.exports = function(RED) {
                     if (!ev) {
                         // node.error(RED._("calendar.error.no-event"), msg);
                         // node.status({ fill: "red", shape: "ring", text: "calendar.status.no-event" });
-						msg.payload = null;
-						node.send(msg);
+						node.send(null);
                         node.status({});
                     } else {
                         sendEvent(node, ev, msg);
@@ -224,8 +223,7 @@ module.exports = function(RED) {
                     if (!ev) {
                         //node.error(RED._("calendar.error.no-event"), msg);
                         //node.status({ fill: "red", shape: "ring", text: "calendar.status.no-event" });
-						msg.payload = null;
-						node.send(msg);
+						node.send(null);
                         node.status({});
                     } else {
                         sendEvent(node, ev, msg);
@@ -334,7 +332,7 @@ module.exports = function(RED) {
                     //console.log("getEvent > ev", { summary: ev.summary, start: ev.start, end: ev.end });
 
                     var start = getEventDate(ev);
-                    var end = getEndEventDate(ev);
+					var end = getEventDate(ev, 'end');
                     //console.log("getEvent > start", start);
 
                     if (!!next) {
@@ -601,19 +599,6 @@ module.exports = function(RED) {
         if (ev[type] && ev[type].dateTime) {
             return new Date(ev[type].dateTime);
         } else if (ev.start && ev.start.date) {
-            return new Date(ev[type].date);
-        } else {
-            return null;
-        }
-    }
-
-    function getEndEventDate(ev, type) {
-        if (typeof type === 'undefined') {
-            type = 'end';
-        }
-        if (ev[type] && ev[type].dateTime) {
-            return new Date(ev[type].dateTime);
-        } else if (ev.end && ev.end.date) {
             return new Date(ev[type].date);
         } else {
             return null;
