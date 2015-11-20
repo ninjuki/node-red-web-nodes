@@ -269,11 +269,11 @@ module.exports = function(RED) {
                     node.calendars.primary = cal;
                 }
                 node.calendars[cal.id] = cal;
-                console.log("calendarList > cal.summary", cal.summary);
-                console.log("calendarList > cal.primary", cal.primary);
-                console.log("calendarList > cal.id", cal.id);
-                console.log("calendarList > cal.accessRole", cal.accessRole);
-                console.log("");
+                //console.log("calendarList > cal.summary", cal.summary);
+                //console.log("calendarList > cal.primary", cal.primary);
+                //console.log("calendarList > cal.id", cal.id);
+                //console.log("calendarList > cal.accessRole", cal.accessRole);
+                //console.log("");
             }
             cb(null);
         });
@@ -293,9 +293,9 @@ module.exports = function(RED) {
             after = new Date();
         }
 
-        console.log("getEvent > msg.payload", msg.payload);
-        console.log("getEvent > after", after);
-        console.log("getEvent > next", next);
+        //console.log("getEvent > msg.payload", msg.payload);
+        //console.log("getEvent > after", after);
+        //console.log("getEvent > next", next);
 
         var request = {
             url: 'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(cal.id) + '/events'
@@ -324,22 +324,22 @@ module.exports = function(RED) {
                 for (var i = 0; i<data.items.length; i++) {
                     ev = data.items[i];
 
-                    console.log("");
-                    console.log("getEvent > ev", { summary: ev.summary, start: ev.start, end: ev.end });
+                    //console.log("");
+                    //console.log("getEvent > ev", { summary: ev.summary, start: ev.start, end: ev.end });
 
                     var start = getEventDate(ev);
                     var end = getEndEventDate(ev);
-                    console.log("getEvent > start", start);
+                    //console.log("getEvent > start", start);
 
                     if (!!next) {
                         if (start && start.getTime() > after.getTime()) {
-                            console.log("getEvent > next break");
+                            //console.log("getEvent > next break");
                             break;
                         }
                     } else {
 
                         if (!!start && !!end && start.getTime() <= after.getTime() && end.getTime() >= after.getTime()) {
-                            console.log("getEvent > break");
+                            //console.log("getEvent > break");
                             break;
                         }
                     }
