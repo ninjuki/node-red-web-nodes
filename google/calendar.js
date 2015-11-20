@@ -174,7 +174,8 @@ module.exports = function(RED) {
                     if (!ev) {
                         // node.error(RED._("calendar.error.no-event"), msg);
                         // node.status({ fill: "red", shape: "ring", text: "calendar.status.no-event" });
-						node.send(null);
+						msg.payload = null;
+						node.send(msg);
                         node.status({});
                     } else {
                         sendEvent(node, ev, msg);
@@ -223,7 +224,8 @@ module.exports = function(RED) {
                     if (!ev) {
                         //node.error(RED._("calendar.error.no-event"), msg);
                         //node.status({ fill: "red", shape: "ring", text: "calendar.status.no-event" });
-						node.send(null);
+						msg.payload = null;
+						node.send(msg);
                         node.status({});
                     } else {
                         sendEvent(node, ev, msg);
