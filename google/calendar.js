@@ -172,8 +172,11 @@ module.exports = function(RED) {
                         return;
                     }
                     if (!ev) {
-                        node.error(RED._("calendar.error.no-event"), msg);
-                        node.status({ fill: "red", shape: "ring", text: "calendar.status.no-event" });
+                        // node.error(RED._("calendar.error.no-event"), msg);
+                        // node.status({ fill: "red", shape: "ring", text: "calendar.status.no-event" });
+						msg.payload = null;
+						node.send(msg);
+                        node.status({});
                     } else {
                         sendEvent(node, ev, msg);
                         node.status({});
@@ -219,8 +222,11 @@ module.exports = function(RED) {
                         return;
                     }
                     if (!ev) {
-                        node.error(RED._("calendar.error.no-event"), msg);
-                        node.status({ fill: "red", shape: "ring", text: "calendar.status.no-event" });
+                        //node.error(RED._("calendar.error.no-event"), msg);
+                        //node.status({ fill: "red", shape: "ring", text: "calendar.status.no-event" });
+						msg.payload = null;
+						node.send(msg);
+                        node.status({});
                     } else {
                         sendEvent(node, ev, msg);
                         node.status({});
