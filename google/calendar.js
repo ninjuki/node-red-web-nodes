@@ -137,7 +137,7 @@ module.exports = function(RED) {
     }
 
     function GoogleCalendarQueryNode(n) {
-        RED.nodes.createNode(this,n);
+        RED.nodes.createNode(this, n);
         this.google = RED.nodes.getNode(n.google);
         this.calendar = n.calendar || 'primary';
 
@@ -147,33 +147,33 @@ module.exports = function(RED) {
         }
 
         var node = this;
-        node.status({fill:"blue",shape:"dot",text:"calendar.status.querying"});
-        calendarList(node, function(err) {
+        node.status({ fill: "blue", shape: "dot", text: "calendar.status.querying" });
+        calendarList(node, function (err) {
             if (err) {
-                node.error(err,{});
-                node.status({fill:"red",shape:"ring",text:"calendar.status.failed"});
+                node.error(err, {});
+                node.status({ fill: "red", shape: "ring", text: "calendar.status.failed" });
                 return;
             }
             node.status({});
 
-            node.on('input', function(msg) {
-                node.status({fill:"blue",shape:"dot",text:"calendar.status.querying"});
+            node.on('input', function (msg) {
+                node.status({ fill: "blue", shape: "dot", text: "calendar.status.querying" });
                 var cal = calendarByNameOrId(node, msg.calendar) ||
                     calendarByNameOrId(node, node.calendar);
                 if (!cal) {
-                    node.error(RED._("calendar.error.invalid-calendar"),msg);
-                    node.status({fill:"red",shape:"ring",text:"calendar.status.invalid-calendar"});
+                    node.error(RED._("calendar.error.invalid-calendar"), msg);
+                    node.status({ fill: "red", shape: "ring", text: "calendar.status.invalid-calendar" });
                     return;
                 }
-                nextStartingEvent(node, cal, msg, function(err, ev) {
+                nextStartingEvent(node, cal, msg, function (err, ev) {
                     if (err) {
-                        node.error(RED._("calendar.error.error", {error:err.toString()}),msg);
-                        node.status({fill:"red",shape:"ring",text:"calendar.status.failed"});
+                        node.error(RED._("calendar.error.error", { error: err.toString() }), msg);
+                        node.status({ fill: "red", shape: "ring", text: "calendar.status.failed" });
                         return;
                     }
                     if (!ev) {
-                        node.error(RED._("calendar.error.no-event"),msg);
-                        node.status({fill:"red",shape:"ring",text:"calendar.status.no-event"});
+                        node.error(RED._("calendar.error.no-event"), msg);
+                        node.status({ fill: "red", shape: "ring", text: "calendar.status.no-event" });
                     } else {
                         sendEvent(node, ev, msg);
                         node.status({});
@@ -182,6 +182,54 @@ module.exports = function(RED) {
             });
         });
     }
+
+    function GoogleCalendarQueryNodeCurrent(n) {
+        RED.nodes.createNode(this, n);
+        this.google = RED.nodes.getNode(n.google);
+        this.calendar = n.calendar || 'primary';
+
+        if (!this.google || !this.google.credentials.accessToken) {
+            this.warn(RED._("calendar.warn.no-credentials"));
+            return;
+        }
+
+        var node = this;
+        node.status({ fill: "blue", shape: "dot", text: "calendar.status.querying" });
+        calendarList(node, function (err) {
+            if (err) {
+                node.error(err, {});
+                node.status({ fill: "red", shape: "ring", text: "calendar.status.failed" });
+                return;
+            }
+            node.status({});
+
+            node.on('input', function (msg) {
+                node.status({ fill: "blue", shape: "dot", text: "calendar.status.querying" });
+                var cal = calendarByNameOrId(node, msg.calendar) ||
+                    calendarByNameOrId(node, node.calendar);
+                if (!cal) {
+                    node.error(RED._("calendar.error.invalid-calendar"), msg);
+                    node.status({ fill: "red", shape: "ring", text: "calendar.status.invalid-calendar" });
+                    return;
+                }
+                currentStartingEvent(node, cal, msg, function (err, ev) {
+                    if (err) {
+                        node.error(RED._("calendar.error.error", { error: err.toString() }), msg);
+                        node.status({ fill: "red", shape: "ring", text: "calendar.status.failed" });
+                        return;
+                    }
+                    if (!ev) {
+                        node.error(RED._("calendar.error.no-event"), msg);
+                        node.status({ fill: "red", shape: "ring", text: "calendar.status.no-event" });
+                    } else {
+                        sendEvent(node, ev, msg);
+                        node.status({});
+                    }
+                });
+            });
+        });
+    }
+
     RED.nodes.registerType("google calendar", GoogleCalendarQueryNode);
 
     function calendarByName(node, name) {
@@ -221,19 +269,36 @@ module.exports = function(RED) {
                     node.calendars.primary = cal;
                 }
                 node.calendars[cal.id] = cal;
+                console.log("calendarList > cal.summary", cal.summary);
+                console.log("calendarList > cal.primary", cal.primary);
+                console.log("calendarList > cal.id", cal.id);
+                console.log("calendarList > cal.accessRole", cal.accessRole);
+                console.log("");
             }
             cb(null);
         });
     }
 
     function nextStartingEvent(node, cal, msg, after, cb) {
+        getEvent(node, cal, msg, after, cb, true);
+    }
+
+    function currentStartingEvent(node, cal, msg, after, cb) {
+        getEvent(node, cal, msg, after, cb);
+    }
+
+    function getEvent(node, cal, msg, after, cb, next) {
         if (typeof after === 'function') {
             cb = after;
             after = new Date();
         }
 
+        console.log("getEvent > msg.payload", msg.payload);
+        console.log("getEvent > after", after);
+        console.log("getEvent > next", next);
+
         var request = {
-            url: 'https://www.googleapis.com/calendar/v3/calendars/'+cal.id+'/events'
+            url: 'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(cal.id) + '/events'
         };
         request.qs = {
             maxResults: 10,
@@ -258,9 +323,25 @@ module.exports = function(RED) {
                  */
                 for (var i = 0; i<data.items.length; i++) {
                     ev = data.items[i];
+
+                    console.log("");
+                    console.log("getEvent > ev", { summary: ev.summary, start: ev.start, end: ev.end });
+
                     var start = getEventDate(ev);
-                    if (start && start.getTime() > after.getTime()) {
-                        break;
+                    var end = getEndEventDate(ev);
+                    console.log("getEvent > start", start);
+
+                    if (!!next) {
+                        if (start && start.getTime() > after.getTime()) {
+                            console.log("getEvent > next break");
+                            break;
+                        }
+                    } else {
+
+                        if (!!start && !!end && start.getTime() <= after.getTime() && end.getTime() >= after.getTime()) {
+                            console.log("getEvent > break");
+                            break;
+                        }
                     }
                     ev = undefined;
                 }
@@ -520,6 +601,19 @@ module.exports = function(RED) {
         }
     }
 
+    function getEndEventDate(ev, type) {
+        if (typeof type === 'undefined') {
+            type = 'end';
+        }
+        if (ev[type] && ev[type].dateTime) {
+            return new Date(ev[type].dateTime);
+        } else if (ev.end && ev.end.date) {
+            return new Date(ev[type].date);
+        } else {
+            return null;
+        }
+    }
+
     function GoogleCalendarOutNode(n) {
         RED.nodes.createNode(this,n);
         this.google = RED.nodes.getNode(n.google);
@@ -581,4 +675,6 @@ module.exports = function(RED) {
         });
     }
     RED.nodes.registerType("google calendar out", GoogleCalendarOutNode);
+
+    RED.nodes.registerType("google calendar current", GoogleCalendarQueryNodeCurrent);
 };
