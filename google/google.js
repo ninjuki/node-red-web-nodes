@@ -100,7 +100,7 @@ module.exports = function(RED) {
                 cb(RED._("google.error.too-many-refresh-attempts"));
                 return;
             }
-            node.warn(RED._("google.warn.token-expired"));
+            //node.warn(RED._("google.warn.token-expired"));
             node.refreshToken(function (err) {
                 if (err) {
                     return;

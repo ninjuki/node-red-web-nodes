@@ -335,7 +335,8 @@ module.exports = function(RED) {
 
                     var start = getEventDate(ev);
 					var end = getEventDate(ev, 'end');
-                    //console.log("getEvent > start", start);
+                    // console.log("getEvent > start", start);
+					// console.log("getEvent > end", end);
 
                     if (!!next) {
                         if (start && start.getTime() > after.getTime()) {
